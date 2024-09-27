@@ -18,4 +18,13 @@ class TaxRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Tax::class);
     }
+
+    /**
+     * @param string $taxFormat
+     * @return Tax|null
+     */
+    public function getByTaxFormat(string $taxFormat): ?Tax
+    {
+        return $this->findOneBy(['format' => $taxFormat]);
+    }
 }
