@@ -71,7 +71,7 @@ class Coupon
      */
     public function getDiscountType(): ?CouponTypeEnum
     {
-        return CouponTypeEnum::tryFrom($this->discountType);
+        return $this->discountType;
     }
 
     /**
