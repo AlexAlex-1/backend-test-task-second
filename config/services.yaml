@@ -26,3 +26,25 @@ services:
     App\EventListener\ExceptionListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', method: 'onKernelException' }
+
+    App\Service\BusinessLogic\Payment\Adapter\PaypalPaymentAdapter:
+        tags:
+            - { name: 'app.payment_adapter', alias: 'paypal' }
+
+    Systemeio\TestForCandidates\PaymentProcessor\PaypalPaymentProcessor:
+        autowire: true
+        autoconfigure: true
+
+    App\Service\BusinessLogic\Payment\Adapter\StripePaymentAdapter:
+        tags:
+            - { name: 'app.payment_adapter', alias: 'stripe' }
+
+    Systemeio\TestForCandidates\PaymentProcessor\StripePaymentProcessor:
+        autowire: true
+        autoconfigure: true
+
+    App\Service\BusinessLogic\PaymentService:
+        arguments:
+            $adapters: !tagged_locator
+                tag: 'app.payment_adapter'
+                index_by: 'alias'

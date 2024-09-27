@@ -2,7 +2,6 @@
 
 namespace App\Service\BusinessLogic;
 
-use App\DTO\CalculatePriceDTO;
 use App\Entity\Coupon;
 use App\Enum\CouponTypeEnum;
 use App\Repository\CouponRepository;
@@ -25,14 +24,18 @@ readonly class CalculatePriceService
     }
 
     /**
-     * @param CalculatePriceDTO $data
+     * @param int $productId
+     * @param string $taxNumber
+     * @param string|null $couponCode
      * @return float
      * @throws Exception
      */
     public function calculatePrice(
-        CalculatePriceDTO $data,
+        int $productId,
+        string $taxNumber,
+        ?string $couponCode = null,
     ): float {
-        $product = $this->productRepository->find($data->getProductId());
+        $product = $this->productRepository->find($productId);
 
         if (!$product) {
             throw new Exception('Product not found');
@@ -40,7 +43,7 @@ readonly class CalculatePriceService
 
         $price = $product->getPrice();
 
-        if ($couponCode = $data->getCouponCode()) {
+        if ($couponCode) {
             $coupon = $this->couponRepository->findOneBy(['code' => $couponCode]);
 
             if (!$coupon) {
@@ -50,7 +53,7 @@ readonly class CalculatePriceService
             $price = $this->applyCoupon($price, $coupon);
         }
 
-        $price = $this->applyTax($price, $data->getTaxNumber());
+        $price = $this->applyTax($price, $taxNumber);
 
         return $price;
     }

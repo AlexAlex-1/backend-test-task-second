@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\DTO\BadResponseDTO;
-use App\DTO\CalculatePriceDTO;
-use App\Service\BusinessLogic\CalculatePriceService;
+use App\DTO\PurchaseDTO;
+use App\Service\BusinessLogic\PaymentService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,15 +14,15 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Throwable;
 
-class CalculatePrice extends AbstractController
+class Purchase extends AbstractController
 {
     /**
      * @param LoggerInterface $logger
-     * @param CalculatePriceService $calculatePriceService
+     * @param PaymentService $paymentService
      */
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly CalculatePriceService $calculatePriceService,
+        private readonly PaymentService $paymentService,
     ) {
     }
 
@@ -33,11 +33,11 @@ class CalculatePrice extends AbstractController
      * @return Response
      */
     #[Route(
-        path: '/calculate-price',
-        name: 'calculate-price',
+        path: '/purchase',
+        name: 'purchase',
         methods: ['POST']
     )]
-    public function calculateProductPrice(
+    public function purchaseOrder(
         Request $request,
         SerializerInterface $serializer,
         ValidatorInterface $validator
@@ -45,19 +45,17 @@ class CalculatePrice extends AbstractController
         try {
             $data = $serializer->deserialize(
                 data: $request->getContent(),
-                type: CalculatePriceDTO::class,
+                type: PurchaseDTO::class,
                 format: 'json'
             );
 
             $data->validate($validator);
 
+            $this->paymentService->processPayment($data);
+
             return $this->json(
                 data: [
-                    'price' => $this->calculatePriceService->calculatePrice(
-                        $data->getProductId(),
-                        $data->getTaxNumber(),
-                        $data->getCouponCode(),
-                    ),
+                    'status' => true,
                 ],
                 status: Response::HTTP_OK,
             );
